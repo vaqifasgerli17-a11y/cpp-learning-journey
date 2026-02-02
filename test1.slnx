@@ -1,7 +1,165 @@
-<Solution>
-  <Configurations>
-    <Platform Name="x64" />
-    <Platform Name="x86" />
-  </Configurations>
-  <Project Path="test1/test1.vcxproj" />
-</Solution>
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <iomanip>
+
+using namespace std;
+
+class Hesab {
+private:
+    int id;
+    string ad;
+    double balans;
+
+public:
+    Hesab() {
+        id = 0;
+        ad = "";
+        balans = 0;
+    }
+
+    void MelumatAl() {
+        cout << "ID daxil edin: ";
+        cin >> id;
+        cin.ignore();
+
+        cout << "Isci adi: ";
+        getline(cin, ad);
+
+        cout << "Balansi daxil edin: ";
+        cin >> balans;
+    }
+
+    void Goster() const {
+        cout << left << setw(5) << id
+             << setw(15) << ad
+             << setw(10) << balans << " AZN" << endl;
+    }
+
+    int getId() const {
+        return id;
+    }
+
+    void artirmaq(double amount) {
+        if (amount > 0)
+            balans += amount;
+        else
+            cout << "Məbləğ müsbət olmalıdır!\n";
+    }
+
+    void azaltmaq(double amount) {
+        if (amount > balans)
+            cout << "Kifayət qədər vəsait yoxdur!\n";
+        else if (amount <= 0)
+            cout << "Məbləğ müsbət olmalıdır!\n";
+        else
+            balans -= amount;
+    }
+
+    void faylaYaz(ofstream& f) const {
+        f << id << endl;
+        f << ad << endl;
+        f << balans << endl;
+    }
+
+    void fayldanOxu(ifstream& f) {
+        f >> id;
+        f.ignore();
+        getline(f, ad);
+        f >> balans;
+    }
+};
+
+class Bank {
+private:
+    static const int MAX = 10;
+    Hesab accounts[MAX];
+    int count;
+
+public:
+    Bank() {
+        count = 0;
+    }
+
+    void HesabElaveEt() {
+        if (count >= MAX) {
+            cout << "Bank doludur!\n";
+            return;
+        }
+        accounts[count].MelumatAl();
+        count++;
+        cout << "Hesab yaradildi ✅\n";
+    }
+
+    void ButunHesablar() const {
+        if (count == 0) {
+            cout << "Hesab yoxdur!\n";
+            return;
+        }
+
+        cout << left << setw(5) << "ID"
+             << setw(15) << "Ad"
+             << setw(10) << "Balans" << endl;
+
+        for (int i = 0; i < count; i++) {
+            accounts[i].Goster();
+        }
+    }
+
+    void FaylaYaz(const string& fayl) const {
+        ofstream f(fayl);
+        for (int i = 0; i < count; i++) {
+            accounts[i].faylaYaz(f);
+        }
+        f.close();
+    }
+
+    void FayldanOxu(const string& fayl) {
+        ifstream f(fayl);
+        if (!f) return;
+
+        count = 0;
+        while (f && count < MAX) {
+            accounts[count].fayldanOxu(f);
+            if (f) count++;
+        }
+        f.close();
+    }
+};
+
+int main() {
+    Bank bank;
+    bank.FayldanOxu("bank.txt");
+
+    int secim;
+    do {
+        cout << "\n--- BANK SISTEMI ---\n";
+        cout << "1. Hesab yarat\n";
+        cout << "2. Hesablari goster\n";
+        cout << "3. Fayla yaz\n";
+        cout << "0. Cixis\n";
+        cout << "Secim: ";
+        cin >> secim;
+
+        switch (secim) {
+        case 1:
+            bank.HesabElaveEt();
+            break;
+        case 2:
+            bank.ButunHesablar();
+            break;
+        case 3:
+            bank.FaylaYaz("bank.txt");
+            cout << "Fayla yazildi 💾\n";
+            break;
+        case 0:
+            cout << "Cixilir...\n";
+            break;
+        default:
+            cout << "Yanlis secim!\n";
+        }
+    } while (secim != 0);
+
+    return 0;
+}
+

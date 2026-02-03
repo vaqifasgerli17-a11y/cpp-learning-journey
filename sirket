@@ -1,0 +1,154 @@
+#include <iostream>
+#include <string>
+#include <iomanip>
+#include <fstream>
+
+using namespace std;
+
+class Isci {
+private:
+    int id;
+    string name;
+    string vezife;
+    double maas;
+
+public:
+    Isci() : id(0), name(""), vezife(""), maas(0) {}
+
+    void MelumatAL() {
+        cout << "Iscinin ID sini daxil edin: ";
+        cin >> id;
+        cin.ignore();
+
+        cout << "Iscinin adini daxil edin: ";
+        getline(cin, name);
+
+        cout << "Iscinin vezifesini daxil edin: ";
+        getline(cin, vezife);
+
+        cout << "Iscinin maasini daxil edin: ";
+        cin >> maas;
+    }
+
+    void Goster() const {
+        cout << left << setw(10) << id
+            << setw(15) << name
+            << setw(15) << vezife
+            << setw(10) << maas << endl;
+    }
+
+    int getId() const { return id; }
+    double getMaas() const { return maas; }
+    void setMaas(double m) { maas = m; }
+
+    void faylaYAZ(ofstream& f) const {
+        f << id << endl << name << endl << vezife << endl << maas << endl;
+    }
+
+    void fayldanOXU(ifstream& f) {
+        f >> id;
+        f.ignore();
+        getline(f, name);
+        getline(f, vezife);
+        f >> maas;
+    }
+};
+
+class Sirket {
+private:
+    static const int maxIsci = 10;
+    Isci isciler[maxIsci];
+    int say;
+
+public:
+    Sirket() : say(0) {}
+
+    void IsciElaveEt() {
+        if (say >= maxIsci) {
+            cout << "Limit dolub!\n";
+            return;
+        }
+        isciler[say++].MelumatAL();
+    }
+
+    void ButunIscileriGoster() const {
+        cout << left << setw(10) << "ID"
+            << setw(15) << "Ad"
+            << setw(15) << "Vezife"
+            << setw(10) << "Maas" << endl;
+        cout << "----------------------------------------\n";
+
+        for (int i = 0; i < say; i++)
+            isciler[i].Goster();
+    }
+
+    void MaasArtir(int id, double faiz) {
+        for (int i = 0; i < say; i++) {
+            if (isciler[i].getId() == id) {
+                isciler[i].setMaas(
+                    isciler[i].getMaas() * (1 + faiz / 100)
+                );
+                cout << "Maas ugurla artirildi.\n";
+                return;
+            }
+        }
+        cout << "Isci tapilmadi.\n";
+    }
+
+    void FaylaYaz(const string& fayl) const {
+        ofstream f(fayl);
+        for (int i = 0; i < say; i++)
+            isciler[i].faylaYAZ(f);
+        f.close();
+    }
+
+    void FayldanOxu(const string& fayl) {
+        ifstream f(fayl);
+        if (!f) return;
+
+        say = 0;
+        while (f && say < maxIsci) {
+            isciler[say].fayldanOXU(f);
+            if (f) say++;
+        }
+        f.close();
+    }
+};
+
+int main() {
+    Sirket sirket;
+    string fayl = "sirket.txt";
+
+    sirket.FayldanOxu(fayl);
+
+    int secim;
+    do {
+        cout << "\n--- MENU ---\n";
+        cout << "1. Isci elave et\n";
+        cout << "2. Iscileri goster\n";
+        cout << "3. Maas artir\n";
+        cout << "4. Fayla yaz\n";
+        cout << "5. Fayldan oxu\n";
+        cout << "0. Cixis\n";
+        cout << "Secim: ";
+        cin >> secim;
+
+        if (secim == 1) sirket.IsciElaveEt();
+        else if (secim == 2) sirket.ButunIscileriGoster();
+        else if (secim == 3) {
+            int id;
+            double faiz;
+            cout << "Isci ID: ";
+            cin >> id;
+            cout << "Faiz: ";
+            cin >> faiz;
+            sirket.MaasArtir(id, faiz);
+        }
+        else if (secim == 4) sirket.FaylaYaz(fayl);
+        else if (secim == 5) sirket.FayldanOxu(fayl);
+
+    } while (secim != 0);
+
+    return 0;
+}
+

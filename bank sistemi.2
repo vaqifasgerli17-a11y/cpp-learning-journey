@@ -1,0 +1,209 @@
+#include <iostream>
+#include <string>
+#include <iomanip>
+#include <fstream>
+
+using namespace std;
+
+class Hesab {
+private:
+    int id;
+    string sahibad;
+    double balans;
+public:
+    Hesab() {
+        sahibad = "";
+        balans = 0;
+    }
+
+    void MelumatAl() {
+        cout << "hesab id daxil edin: ";
+        cin >> id;
+        cin.ignore();
+        cout << "sahibin adini daxil edin: ";
+        getline(cin, sahibad);
+        cout << "balanisi daxil edin: ";
+        cin >> balans;
+    }
+
+    void MelumatYaz() const {
+        cout << "hesab id: " << left << setw(15) << id;
+        cout << "sahibin adi: " << left << setw(15) << sahibad;
+        cout << "hesabindaki esas meblex: " << left << setw(15) << balans << endl;
+    }
+
+    void PulArtir(double mebleq) {
+        if (mebleq > 0)
+            balans += mebleq;
+        else
+            cout << "Məbləğ müsbət olmalıdır!\n";
+    }
+
+    void PulAzalt(double mebleq) {
+        if (mebleq > balans)
+            cout << "Kifayət qədər vəsait yoxdur!\n";
+        else if (mebleq <= 0)
+            cout << "Məbləğ müsbət olmalıdır!\n";
+        else
+            balans -= mebleq;
+    }
+
+    int GetId() const {
+        return id;
+    }
+
+    double GetBalans() const {
+        return balans;
+    }
+
+    void faylaYaz(ofstream& ofs) {
+        ofs << id << endl;
+        ofs << sahibad << endl;
+        ofs << balans << endl;
+    }
+
+    void fayldanOxu(ifstream& ifs) {
+        ifs >> id;
+        ifs.ignore();
+        getline(ifs, sahibad);
+        ifs >> balans;
+    }
+};
+
+class Bank {
+private:
+    static const int max = 20;
+    Hesab hesab[max];
+    int hesabSayi;
+
+public:
+    Bank() {
+        hesabSayi = 0;
+    }
+
+    void HesabElaveEt() {
+        if (hesabSayi < max) {
+            hesab[hesabSayi].MelumatAl();
+            hesabSayi++;
+        }
+        else {
+            cout << "Hesab limiti doludur!\n";
+        }
+    }
+
+    void ButunHesablariGoster() const {
+        if (hesabSayi == 0) {
+            cout << "Hesab yoxdur!\n";
+            return;
+        }
+
+        cout << left << setw(5) << "ID"
+            << setw(15) << "Ad"
+            << setw(10) << "Balans" << endl;
+
+        for (int i = 0; i < hesabSayi; i++) {
+            hesab[i].MelumatYaz();
+        }
+    }
+
+    void PulYatir(int id, double mebleq) {
+        for (int i = 0; i < hesabSayi; i++) {
+            if (hesab[i].GetId() == id) {
+                hesab[i].PulArtir(mebleq);
+                return;
+            }
+        }
+        cout << "Hesab tapilmadi!\n";
+    }
+
+    void PulCek(int id, double mebleq) {
+        for (int i = 0; i < hesabSayi; i++) {
+            if (hesab[i].GetId() == id) {
+                hesab[i].PulAzalt(mebleq);
+                return;
+            }
+        }
+        cout << "Hesab tapilmadi!\n";
+    }
+
+    void FaylaYaz(const string& fayl) {
+        ofstream f(fayl);
+        for (int i = 0; i < hesabSayi; i++) {
+            hesab[i].faylaYaz(f);
+        }
+        f.close();
+    }
+
+    void FayldanOxu(const string& fayl) {
+        ifstream f(fayl);
+        hesabSayi = 0;
+        while (!f.eof() && hesabSayi < max) {
+            hesab[hesabSayi].fayldanOxu(f);
+            hesabSayi++;
+        }
+        f.close();
+    }
+};
+
+int main() {
+    Bank bank;
+    bank.FayldanOxu("bank.txt");
+
+    int secim;
+    do {
+        cout << "\n--- BANK SISTEMI ---\n";
+        cout << "1. Hesab yarat\n";
+        cout << "2. Hesablari goster\n";
+        cout << "3. Pul yatir\n";
+        cout << "4. Pul cek\n";
+        cout << "5. Fayla yaz\n";
+        cout << "6. Fayldan oxu\n";
+        cout << "0. Cixis\n";
+        cout << "Secim: ";
+        cin >> secim;
+
+        switch (secim) {
+        case 1:
+            bank.HesabElaveEt();
+            break;
+        case 2:
+            bank.ButunHesablariGoster();
+            break;
+        case 3: {
+            int id;
+            double mebleq;
+            cout << "Hesab ID daxil edin: ";
+            cin >> id;
+            cout << "Yatirilacaq mebleg: ";
+            cin >> mebleq;
+            bank.PulYatir(id, mebleq);
+            break;
+        }
+        case 4: {
+            int id;
+            double mebleq;
+            cout << "Hesab ID daxil edin: ";
+            cin >> id;
+            cout << "Cekiləcək mebleg: ";
+            cin >> mebleq;
+            bank.PulCek(id, mebleq);
+            break;
+        }
+        case 5:
+            bank.FaylaYaz("bank.txt");
+            cout << "Fayla yazildi 💾\n";
+            break;
+        case 6:
+            bank.FayldanOxu("bank.txt");
+            cout << "Fayldan oxundu 📂\n";
+            break;
+        case 0:
+            cout << "Cixilir...\n";
+            break;
+        default:
+            cout << "Yanlis secim!\n";
+        }
+    } while (secim != 0);
+
+    return 0;
+}

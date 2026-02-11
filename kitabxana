@@ -1,0 +1,195 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <fstream>
+#include <iomanip>
+#include <algorithm>
+#include <limits>
+
+using namespace std;
+
+class Kitab {
+private:
+    int id;
+    string ad;
+    string muelif;
+    int sehifesayi;
+
+public:
+    Kitab(int id=0,string ad="",string muelif="", int sehifesayi=0) {
+        this->id = id;
+        this->ad = ad;
+        this->muelif = muelif;
+        this->sehifesayi = sehifesayi;
+    }
+
+    int getId()const { return id; }
+
+    // ===== INPUT =====
+    void MelumatAL() {
+        cout << "Kitab id: ";
+        cin >> id;
+        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+        cout << "Kitabin adi: ";
+        getline(cin, ad);
+
+        cout << "Muellif: ";
+        getline(cin, muelif);
+
+        cout << "Sehife sayi: ";
+        cin >> sehifesayi;
+    }
+
+    // ===== OUTPUT =====
+    void MelumatGoster()const{
+        cout << left << setw(8) << id
+             << setw(20) << ad
+             << setw(20) << muelif
+             << setw(10) << sehifesayi << endl;
+    }
+
+    // ===== FILE WRITE =====
+    void FaylYaz(ofstream& file) const {
+        file << id << endl;
+        file << ad << endl;
+        file << muelif << endl;
+        file << sehifesayi << endl;
+    }
+
+    // ===== FILE READ =====
+    bool FayldanOxu(ifstream& file) {
+        if (!(file >> id)) return false;
+        file.ignore(numeric_limits<streamsize>::max(), '\n');
+
+        getline(file, ad);
+        getline(file, muelif);
+
+        file >> sehifesayi;
+        file.ignore(numeric_limits<streamsize>::max(), '\n');
+
+        return true;
+    }
+};
+
+class Kitabxana {
+private:
+    vector<Kitab> kitablar;
+
+public:
+
+    void KitabElaveET() {
+        Kitab k;
+        k.MelumatAL();
+        kitablar.push_back(k);
+    }
+
+    void KitablarGoster()const{
+        if (kitablar.empty()) {
+            cout << "Kitab yoxdur!\n";
+            return;
+        }
+
+        cout << "\nID      AD                  MUELLIF            SEHIFE\n";
+        cout << "-----------------------------------------------------------\n";
+
+        for (const auto& k : kitablar)
+            k.MelumatGoster();
+    }
+
+    void Axtar(int id) const{
+        for (const auto& k : kitablar)
+            if (k.getId() == id) {
+                cout << "\nTapildi:\n";
+                k.MelumatGoster();
+                return;
+            }
+
+        cout << "Kitab tapilmadi!\n";
+    }
+
+    void FaylaYaz(const string& filename) {
+        ofstream file(filename);
+        if (!file) {
+            cout << "Fayl acilamadi!\n";
+            return;
+        }
+
+        for (const auto& k : kitablar)
+            k.FaylYaz(file);
+
+        cout << "Fayla yazildi.\n";
+    }
+
+    void FayldanOxu(const string& filename) {
+        ifstream file(filename);
+        if (!file) return;
+
+        kitablar.clear();
+
+        while (true) {
+            Kitab k;
+            if (!k.FayldanOxu(file)) break;
+            kitablar.push_back(k);
+        }
+
+        cout << "Fayldan oxundu.\n";
+    }
+};
+
+int main()
+{
+    Kitabxana kitabxana;
+    kitabxana.FayldanOxu("kitab.txt");
+
+    int secim;
+
+    do {
+        cout << "\n===== KITABXANA =====\n";
+        cout << "1. Kitab elave et\n";
+        cout << "2. Kitablari goster\n";
+        cout << "3. ID ile axtar\n";
+        cout << "4. Fayla yaz\n";
+        cout << "5. Fayldan oxu\n";
+        cout << "0. Cixis\n";
+        cout << "Secim: ";
+
+        cin >> secim;
+
+        switch (secim) {
+        case 1:
+            kitabxana.KitabElaveET();
+            break;
+
+        case 2:
+            kitabxana.KitablarGoster();
+            break;
+
+        case 3: {
+            int id;
+            cout << "ID daxil et: ";
+            cin >> id;
+            kitabxana.Axtar(id);
+            break;
+        }
+
+        case 4:
+            kitabxana.FaylaYaz("kitab.txt");
+            break;
+
+        case 5:
+            kitabxana.FayldanOxu("kitab.txt");
+            break;
+
+        case 0:
+            cout << "Proqram baglandi.\n";
+            break;
+
+        default:
+            cout << "Yanlis secim!\n";
+        }
+
+    } while (secim != 0);
+
+    return 0;
+}

@@ -1,0 +1,217 @@
+#include <iostream>
+#include<string>
+#include<vector>
+#include<fstream>
+#include<iomanip>
+#include<algorithm>
+#include<limits>
+
+using namespace std;
+
+class Student {
+
+private:
+    string ad;
+    string soyad;
+    int id;
+    double qrup;
+    float ortalama;
+
+public:
+    Student(string ad,string soyad,int id,double qrup,float ortalama){
+        this->ad = ad;
+        this->soyad = soyad;
+        this->id = id;
+        this->qrup = qrup;
+		this->ortalama = ortalama;
+
+    }
+
+    int getId() const { return id; }
+    double getQrup() const { return qrup; }
+    float getOrtalama() const { return ortalama; }
+
+    
+        void DaxilEt()
+        {
+            cout << "Telebenin adini daxil edin:";
+            cin >> ad;
+			cin.ignore(numeric_limits<streamsize>::max(), '\n'); 
+            cout << "Telebenin soyadini daxil edin:";
+            getline(cin, soyad);
+            cout << "Telebenin id daxil edin:";
+            cin >> id;
+            cout << "Telebenin qrupunu daxil edin:";
+            cin >> qrup;
+            cout << "Telebenin ortalamaisini dail edin:";
+            cin >> ortalama;
+
+        }
+
+        void Goster  () const
+        {
+            cout << "Telebenin ad:" << left << setw(20) << ad << endl;
+            cout << "Telebenin soyad:" << left << setw(20) << soyad << endl;
+            cout << "Telebenin id:" << left << setw(20) << id << endl;
+            cout << "Telebenin qrupu:" << left << setw(20) << qrup << endl;
+            cout << "Telebenin ortalam:" << left << setw(20) << ortalama << endl;
+
+        }
+
+        void FaylaYaz( ofstream& file ) const{
+            file << ad << endl;
+            file << soyad << endl;
+            file << id << endl;
+            file << qrup << endl;
+            file << ortalama << endl;
+            
+        }
+
+        bool FayldanOxu(ifstream& file) {
+            if (!getline(file, ad)) return false;
+            getline(file, soyad);
+            file >> id >> qrup >> ortalama;
+            file.ignore(numeric_limits<streamsize>::max(), '\n');
+            return true;
+        }
+
+
+        
+};
+
+class University {
+
+private:
+    vector<Student>students;
+
+public:
+    void ElaveEt(const Student& student) {
+        students.push_back(student);
+    }
+
+
+   void Goster() const {
+        for (const auto& student : students) {
+            student.Goster();
+            cout << "-------------------------" << endl;
+        }
+    }
+
+   void idIleAxtar(int id) const {
+       for(const auto& Student:students){
+           if (Student.getId()== id)
+           {
+               Student.Goster();
+               return;
+           }
+       }
+   }
+
+   void Sil(int id) {
+       students.erase(remove_if(students.begin(), students.end(),
+           [id](const Student& s)
+           {return s.getId() == id; }), students.end());
+   }
+
+
+ 
+    
+   void faylaYaz(const string& filename) const {
+       ofstream file(filename);
+       for (const auto& s: students)
+       {
+           s.FaylaYaz(file);
+       }
+  }
+
+   void fayldanOxu(const string& filename){
+       ifstream file(filename);
+       if (!file) return;
+	   students.clear();
+       while (true)
+       {
+		   Student s("", "", 0, 0.0, 0.0);
+		   if (!s.FayldanOxu(file)) break;
+           students.push_back(s);
+       }
+
+   }
+
+};
+
+int main()
+{
+
+	University uni;
+	uni.fayldanOxu("students.txt");
+
+    int secim;
+    do
+    {
+        cout << "  ==== = UNIVERSITY SYSTEM ==== =" << endl;
+        cout << "   1. Telebe elave et:" << endl;
+        cout << "   2. Hamisini goster:" << endl;
+        cout << "    3. ID ile axtar:" << endl;
+        cout << "    4. Telebeni sil :" << endl;
+        cout << "  5. Fayla yaz:" << endl;
+        cout << "   6. Fayldan oxu:" << endl;
+        cout << "   0. Cixis:" << endl;
+
+        cout << "Secim: ";
+        cin >> secim;
+
+        switch (secim)
+        {
+        case 1: {
+            Student s("", "", 0, 0.0, 0.0);
+            s.DaxilEt();
+            uni.ElaveEt(s);
+            break;
+        }
+
+        case 2: {
+            uni.Goster();
+            break;
+        }
+
+        case 3: {
+            int id;
+            cout << "ID daxil et: ";
+            cin >> id;
+            uni.idIleAxtar(id);
+            break;
+        }
+        case 4: {
+            int silId;
+            cout << "Silinecek ID: ";
+            cin >> silId;
+            uni.Sil(silId);
+            cout << "Telebe silindi.\n";
+            break;
+        }
+
+        case 5:
+            uni.faylaYaz("students.txt");
+            cout << "Fayla yazildi.\n";
+            break;
+
+        case 6:
+            uni.fayldanOxu("students.txt");
+            cout << "Fayldan oxundu.\n";
+            break;
+
+        case 0:
+            cout << "Cixis...\n";
+            break;
+
+        default:
+            cout << "Yanlis secim!\n";
+        
+
+        }
+
+
+    } while (secim !=0);
+
+    return 0;
+}
